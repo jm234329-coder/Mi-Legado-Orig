@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p \"C:\\\\Users\\\\jm234\\\\OneDrive\\\\Desktop\\\\911\\\\1%\\\\Mi-Legado\\\\mi-legado\\\\img\")",
+      "mcp__Claude_Preview__preview_start",
+      "WebSearch",
+      "WebFetch(domain:www.taivo.ai)",
+      "WebFetch(domain:cli.github.com)",
+      "Bash(git clone *)",
+      "Bash(dir \"%USERPROFILE%\\\\.claude\")",
+      "Bash(ls \"C:/Users/jm234/.claude/skills/ui-ux-pro-max-skill\")",
+      "Bash(ls \"C:/Users/jm234/.claude/skills/\")",
+      "Bash(ls \"C:/Users/jm234/.claude/\")",
+      "Bash(dir \"C:\\\\Users\\\\jm234\\\\OneDrive\\\\Desktop\\\\911\\\\1%\\\\Mi-Legado\\\\mi-legado\" /b)"
+    ]
+  }
+}

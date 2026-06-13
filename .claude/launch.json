@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mi-legado",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "mi-legado", "-p", "3000", "--no-clipboard"],
+      "port": 3000
+    }
+  ]
+}

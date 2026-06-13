@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MI LEGADO — Sistema de Evolución Personal</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Exo+2:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets (order matters) -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/screens.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/book-reader.css">
+</head>
+<body data-theme="default">
+
+  <!-- Background FX -->
+  <div id="particles" aria-hidden="true"></div>
+  <div id="scanlines" aria-hidden="true"></div>
+  <div id="bgGlow" aria-hidden="true"></div>
+
+  <!-- Notifications -->
+  <div id="notifyContainer" role="status" aria-live="polite"></div>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__logo">
+      <div class="logo__title">MI LEGADO</div>
+      <div class="logo__sub">Sistema de Evolución</div>
+      <div class="logo__line"></div>
+    </div>
+
+    <div class="sidebar__user">
+      <div class="user__avatar" id="userAvatar" title="Cambiar foto de perfil" onclick="document.getElementById('avatarInput').click()">
+        <span class="user__avatar-initials" id="avatarInitials">G</span>
+        <img class="user__avatar-img" id="avatarImg" src="" alt="Foto de perfil" style="display:none">
+        <div class="user__avatar-edit">+</div>
+      </div>
+      <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="MLProfile.onAvatarChange(event)">
+      <div class="user__info">
+        <div class="user__name" id="userName">Guerrero</div>
+        <div class="user__rank" id="userRank">CENTINELA III</div>
+        <div class="xp-bar">
+          <div class="xp-bar__fill" id="xpBarFill"></div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar__nav" id="sidebarNav">
+      <!-- Rendered by js/modules/navigation.js -->
+    </nav>
+
+    <div class="sidebar__footer">
+      <button class="btn-themes" onclick="MLNavigation.go('temas')">
+        TEMAS INMERSIVOS
+      </button>
+      <div class="sidebar__version">v1.0.0 · Build 2026</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" id="mainContent">
+
+    <!-- TOPBAR -->
+    <header class="topbar" id="topbar">
+      <div class="topbar__left">
+        <span class="stage-tag" id="stageTag">⚡ EL DESPERTAR</span>
+        <h1 class="page-title" id="pageTitle">Centro de Mando</h1>
+      </div>
+      <div class="topbar__right">
+        <div class="stat-pill"><span class="stat-pill__label">RACHA</span> <span class="stat-pill__val" id="statStreak">14</span> <span class="stat-pill__unit">días</span></div>
+        <div class="stat-pill"><span class="stat-pill__val" id="statXP">6,740</span> <span class="stat-pill__unit">XP</span></div>
+        <div class="stat-pill"><span class="stat-pill__label">NIV.</span> <span class="stat-pill__val" id="statLevel">23</span></div>
+      </div>
+    </header>
+
+    <!-- SCREEN CONTAINER -->
+    <div class="content" id="screenContainer">
+      <!-- Screens injected by js/screens/*.js -->
+    </div>
+
+  </main>
+
+  <!-- DATA LAYER -->
+  <script src="data/user.js"></script>
+  <script src="data/content.js"></script>
+
+  <!-- CORE MODULES -->
+  <script src="js/modules/state.js"></script>
+  <script src="js/modules/notifications.js"></script>
+  <script src="js/modules/particles.js"></script>
+  <script src="js/modules/navigation.js"></script>
+  <script src="js/modules/themes.js"></script>
+  <script src="js/modules/profile.js"></script>
+  <script src="js/modules/bookReader.js"></script>
+  <script src="js/modules/xp.js"></script>
+  <script src="js/modules/charts.js"></script>
+
+  <!-- SCREENS -->
+  <script src="js/screens/inicio.js"></script>
+  <script src="js/screens/misiones.js"></script>
+  <script src="js/screens/responsabilidad.js"></script>
+  <script src="js/screens/diario.js"></script>
+  <script src="js/screens/academia.js"></script>
+  <script src="js/screens/biblioteca.js"></script>
+  <script src="js/screens/mentor.js"></script>
+  <script src="js/screens/evolucion.js"></script>
+  <script src="js/screens/guerrero.js"></script>
+  <script src="js/screens/ranking.js"></script>
+  <script src="js/screens/comunidad.js"></script>
+  <script src="js/screens/hall.js"></script>
+  <script src="js/screens/temas.js"></script>
+
+  <!-- ══════════════════════════════════════════════════════
+       LECTOR DE LIBRO VIRTUAL — EDICIÓN PREMIUM
+       ══════════════════════════════════════════════════════ -->
+  <div id="bookReaderOverlay" class="br-overlay" aria-modal="true" role="dialog" aria-hidden="true">
+   <div class="br br-mode-claro" id="brEl">
+
+    <!-- ── TOOLBAR SUPERIOR ── -->
+    <div class="br-toolbar">
+      <div class="br-toolbar__left">
+        <button class="br-icon-btn" onclick="MLBookReader.toggleLeftPanel()" title="Menú">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <span class="br-toolbar__brand">BIBLIOTECA</span>
+      </div>
+      <div class="br-toolbar__center">
+        <div class="br-toolbar__title" id="brTitle">—</div>
+        <div class="br-toolbar__author" id="brAuthor">—</div>
+      </div>
+      <div class="br-toolbar__right">
+        <button class="br-icon-btn" id="brSearchBtn" onclick="MLBookReader.openPanel('search')" title="Buscar">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+        <button class="br-icon-btn" id="brBookmarkBtn" onclick="MLBookReader.toggleBookmark()" title="Marcar página">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        </button>
+        <button class="br-icon-btn" id="brFontBtn" onclick="MLBookReader.openPanel('font')" title="Tipografía">
+          <span style="font-family:serif;font-size:14px;font-weight:700;line-height:1">Aa</span>
+        </button>
+        <label class="br-icon-btn br-icon-btn--upload" title="Cargar PDF">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <input type="file" id="bookPdfInput" accept="application/pdf" style="display:none" onchange="MLBookReader.handleFileInput(this)">
+        </label>
+        <button class="br-icon-btn br-icon-btn--close" onclick="MLBookReader.close()" title="Cerrar">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── ÁREA CENTRAL ── -->
+    <div class="br-main" id="brMain">
+
+      <!-- PANEL IZQUIERDO -->
+      <aside class="br-left-panel" id="brLeftPanel">
+        <div class="br-panel-section">
+          <div class="br-panel-title">NAVEGACIÓN</div>
+          <button class="br-left-item" onclick="MLBookReader.goToPage(1)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            Inicio del libro
+          </button>
+          <button class="br-left-item" id="brGoToBookmark" onclick="MLBookReader.goToLastBookmark()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            Ir a marcador
+          </button>
+          <div class="br-panel-title" style="margin-top:16px">IR A PÁGINA</div>
+          <div class="br-goto-row">
+            <input class="br-goto-input" type="number" id="brGotoInput" min="1" placeholder="Nº pág." onkeydown="if(event.key==='Enter')MLBookReader.goToPage(+this.value)">
+            <button class="br-goto-btn" onclick="MLBookReader.goToPage(+document.getElementById('brGotoInput').value)">IR</button>
+          </div>
+        </div>
+
+        <div class="br-panel-section">
+          <div class="br-panel-title">MARCADORES</div>
+          <div id="brBookmarksList" class="br-bookmarks-list">
+            <div class="br-empty-note">Sin marcadores aún.</div>
+          </div>
+        </div>
+
+        <div class="br-panel-section">
+          <div class="br-panel-title">LECTURA SIN DISTRACCIONES</div>
+          <button class="br-left-item" onclick="MLBookReader.toggleFocus()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+            <span id="brFocusLabel">Activar modo foco</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- LIBRO -->
+      <div class="br-spread-wrap" id="brSpreadWrap">
+
+        <!-- Sin PDF -->
+        <div class="br-empty" id="brEmpty">
+          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".3"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <div class="br-empty__title">Sin PDF asociado</div>
+          <div class="br-empty__desc">Carga un PDF para leer este libro dentro de la app. Se guardará automáticamente para futuras sesiones.</div>
+          <label class="br-empty__btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Seleccionar PDF
+            <input type="file" accept="application/pdf" style="display:none" onchange="MLBookReader.handleFileInput(this)">
+          </label>
+        </div>
+
+        <!-- Libro abierto -->
+        <div class="br-book" id="brBook">
+          <!-- Sombra exterior izquierda -->
+          <div class="br-book__shadow-l"></div>
+
+          <!-- Página izquierda -->
+          <div class="br-page br-page--left" id="brPageLeft">
+            <div class="br-page__inner">
+              <canvas id="brCanvasLeft"></canvas>
+            </div>
+            <div class="br-page__num" id="brNumLeft"></div>
+          </div>
+
+          <!-- Lomo -->
+          <div class="br-spine">
+            <div class="br-spine__glow"></div>
+          </div>
+
+          <!-- Página derecha -->
+          <div class="br-page br-page--right" id="brPageRight">
+            <div class="br-page__inner">
+              <canvas id="brCanvasRight"></canvas>
+            </div>
+            <div class="br-page__num" id="brNumRight"></div>
+          </div>
+
+          <!-- Sombra exterior derecha -->
+          <div class="br-book__shadow-r"></div>
+        </div>
+
+      </div>
+
+      <!-- PANEL DERECHO: Aa / Marcador / Búsqueda -->
+      <aside class="br-right-panel" id="brRightPanel">
+
+        <!-- TIPOGRAFÍA -->
+        <div class="br-rpanel-tab" id="brPanelFont">
+          <div class="br-panel-title">PERSONALIZACIÓN</div>
+
+          <div class="br-setting">
+            <div class="br-setting__label">Tamaño de página</div>
+            <div class="br-slider-row">
+              <span class="br-slider-icon">A</span>
+              <input type="range" class="br-slider" id="brScaleSlider" min="0.7" max="2.0" step="0.05" value="1.2" oninput="MLBookReader.setScale(+this.value)">
+              <span class="br-slider-icon" style="font-size:1.1rem">A</span>
+            </div>
+          </div>
+
+          <div class="br-setting">
+            <div class="br-setting__label">Modo de lectura</div>
+            <div class="br-modes-grid">
+              <button class="br-mode-btn br-mode-btn--claro active" onclick="MLBookReader.setMode('claro',this)">
+                <span class="br-mode-swatch" style="background:#fff;border:1px solid #ddd"></span>
+                Claro
+              </button>
+              <button class="br-mode-btn br-mode-btn--sepia" onclick="MLBookReader.setMode('sepia',this)">
+                <span class="br-mode-swatch" style="background:#f5eed8"></span>
+                Sepia
+              </button>
+              <button class="br-mode-btn br-mode-btn--verde" onclick="MLBookReader.setMode('verde',this)">
+                <span class="br-mode-swatch" style="background:#eaf5ea"></span>
+                Verde
+              </button>
+              <button class="br-mode-btn br-mode-btn--oscuro" onclick="MLBookReader.setMode('oscuro',this)">
+                <span class="br-mode-swatch" style="background:#1a1a2e"></span>
+                Oscuro
+              </button>
+            </div>
+          </div>
+
+          <div class="br-setting">
+            <div class="br-setting__label">Brillo</div>
+            <div class="br-slider-row">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+              <input type="range" class="br-slider" id="brBrightSlider" min="60" max="130" step="5" value="100" oninput="MLBookReader.setBrightness(+this.value)">
+              <span id="brBrightVal" style="font-family:'Fira Code',monospace;font-size:0.5rem;color:rgba(212,175,55,.7);min-width:34px;text-align:right;letter-spacing:0.05em;">100%</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- BÚSQUEDA -->
+        <div class="br-rpanel-tab br-rpanel-tab--hidden" id="brPanelSearch">
+          <div class="br-panel-title">BÚSQUEDA</div>
+          <div class="br-search-box">
+            <input type="text" class="br-search-input" id="brSearchInput" placeholder="Buscar en el libro..." oninput="MLBookReader.searchText(this.value)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <div class="br-search-results" id="brSearchResults">
+            <div class="br-empty-note">Escribe para buscar.</div>
+          </div>
+        </div>
+
+      </aside>
+    </div>
+
+    <!-- ── FOOTER ── -->
+    <div class="br-footer" id="brFooter">
+      <button class="br-nav-btn" id="brPrevBtn" onclick="MLBookReader.prevPage()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        ANTERIOR
+      </button>
+
+      <div class="br-footer__center">
+        <input type="range" class="br-page-slider" id="brPageSlider" min="1" max="2" step="2" value="1"
+               oninput="MLBookReader.goToPage(+this.value)" title="Desliza para navegar">
+        <div class="br-footer__info" id="brPageInfo">— / —</div>
+      </div>
+
+      <button class="br-nav-btn br-nav-btn--next" id="brNextBtn" onclick="MLBookReader.nextPage()">
+        SIGUIENTE
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+
+   </div><!-- /.br -->
+  </div><!-- /.br-overlay -->
+
+  <!-- PDF.js (Mozilla) para el lector de libros -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <!-- APP BOOTSTRAP -->
+  <script src="js/app.js"></script>
+
+</body>
+</html>
