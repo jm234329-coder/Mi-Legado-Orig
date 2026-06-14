@@ -686,8 +686,7 @@ const MLScreenEvolucion = {
      WebGL SHADER — Nebula background for objectives
      ══════════════════════════════════════════════════════════ */
   _startShaderCanvas(id) {
-    const canvas = document.getElementById(id); if (!canvas) return;
-    const gl = canvas.getContext('webgl2'); if (!gl) return;
+    return; // disabled
 
     const resize = () => {
       const wrap = canvas.parentElement;
@@ -762,7 +761,7 @@ void main(void){
 
   /* ── particle background (welcome) ───────────────────────── */
   _startParticles(id) {
-    const canvas=document.getElementById(id); if(!canvas) return;
+    return; // disabled
     const ctx=canvas.getContext('2d'); let W,H,particles=[],raf;
     const resize=()=>{ W=canvas.width=canvas.offsetWidth; H=canvas.height=canvas.offsetHeight; };
     resize(); window.addEventListener('resize',resize);

@@ -321,9 +321,9 @@ const MLScreenDiario = {
     // Build mood pills
     this._buildMoodPills();
 
-    // Init wave
+    // Wave disabled
     const canvas = document.getElementById('diaryWaveCanvas');
-    if (canvas) DiaryWave.init(canvas);
+    if (canvas) canvas.style.display = 'none';
 
     // Wire up textarea
     const ta = document.getElementById('diaryInput');

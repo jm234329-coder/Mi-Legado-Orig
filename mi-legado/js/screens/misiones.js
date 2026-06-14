@@ -510,7 +510,7 @@ const MLScreenMisiones = {
   },
 
   _startParticles() {
-    this._stopParticles();
+    return; // disabled
 
     const canvas = document.getElementById('semanaCanvas');
     const container = document.getElementById('tabSemana');

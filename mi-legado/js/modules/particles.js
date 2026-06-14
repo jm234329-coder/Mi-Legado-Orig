@@ -9,6 +9,7 @@ const MLParticles = {
 
   init() {
     this.container = document.getElementById('particles');
+    if (!this.container) return;
     this.spawn();
   },
   
