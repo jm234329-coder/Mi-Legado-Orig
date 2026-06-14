@@ -1753,102 +1753,182 @@
 }
 
 /* ════════════════════════════════════════════════════════════
-   STEP 1 — WELCOME / CAPITAL INPUT
+   STEP 1 — WELCOME / CAPITAL INPUT  (full-bleed redesign)
    ════════════════════════════════════════════════════════════ */
+
+/* Pull the screen out of the .content padding */
+#screen-evolucion {
+  margin: calc(-1 * var(--space-lg));
+}
+
 .evo-welcome {
   position: relative;
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   overflow: hidden;
 }
 
-.evo-particles {
-  position: absolute;
-  inset: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.evo-welcome__inner {
+/* ── LEFT PANEL — hero copy ── */
+.evo-welcome__left {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px 56px;
+  background: linear-gradient(145deg,
+    rgba(10,8,20,1) 0%,
+    rgba(18,14,38,1) 60%,
+    rgba(10,8,20,1) 100%);
+  overflow: hidden;
   z-index: 1;
-  text-align: center;
-  max-width: 620px;
-  padding: var(--space-xl) var(--space-lg);
-  animation: evoFadeUp 0.7s cubic-bezier(0.22,1,0.36,1) both;
 }
 
-@keyframes evoFadeUp {
-  from { opacity: 0; transform: translateY(40px); }
-  to   { opacity: 1; transform: translateY(0); }
+.evo-welcome__left::before {
+  content: '';
+  position: absolute;
+  top: -200px; left: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(77,255,184,.1) 0%, transparent 65%);
+  pointer-events: none;
+}
+.evo-welcome__left::after {
+  content: '';
+  position: absolute;
+  bottom: -150px; right: -100px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(123,92,255,.08) 0%, transparent 65%);
+  pointer-events: none;
 }
 
-.evo-welcome__badge {
-  display: inline-block;
+.evo-welcome__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-family: 'Fira Code', monospace;
-  font-size: 0.5rem;
-  letter-spacing: 0.28em;
-  color: var(--teal);
+  font-size: 0.5625rem;
+  letter-spacing: 0.3em;
+  color: rgba(77,255,184,.8);
   background: rgba(77,255,184,.07);
-  border: 1px solid rgba(77,255,184,.2);
-  border-radius: var(--radius-pill);
-  padding: 5px 16px;
-  margin-bottom: var(--space-lg);
-  animation: badgePulse 3s ease-in-out infinite;
+  border: 1px solid rgba(77,255,184,.18);
+  border-radius: 20px;
+  padding: 6px 16px;
+  margin-bottom: 32px;
+  width: fit-content;
 }
-
-@keyframes badgePulse {
-  0%,100% { box-shadow: 0 0 0 0 rgba(77,255,184,0); }
-  50%      { box-shadow: 0 0 16px 2px rgba(77,255,184,.15); }
+.evo-welcome__eyebrow::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--teal);
+  box-shadow: 0 0 8px var(--teal);
 }
 
 .evo-welcome__title {
   font-family: var(--font-heading);
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 800;
-  color: var(--text-primary);
-  line-height: 1.15;
-  margin-bottom: var(--space-md);
-  letter-spacing: 0.02em;
+  font-size: clamp(2.2rem, 3.5vw, 3.2rem);
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  color: #f0ece0;
+  margin-bottom: 20px;
 }
-.evo-welcome__title--accent { color: var(--accent); }
-.evo-welcome__title--gold {
-  color: var(--gold);
-  text-shadow: 0 0 30px rgba(212,175,55,.4);
+.evo-welcome__title em {
+  font-style: normal;
+  background: linear-gradient(135deg, #4dffd2, #7bffd4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.evo-welcome__title strong {
+  font-style: normal;
+  background: linear-gradient(135deg, #d4af37, #f0d060);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .evo-welcome__sub {
   font-size: 0.9375rem;
-  color: var(--text-secondary);
-  line-height: 1.7;
-  margin-bottom: var(--space-xl);
+  color: rgba(220,215,200,.5);
+  line-height: 1.75;
+  margin-bottom: 40px;
+  max-width: 400px;
 }
 
-/* Capital Card */
+.evo-welcome__features {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.evo-welcome__feat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-heading);
+  font-size: 0.8125rem;
+  color: rgba(220,215,200,.65);
+  letter-spacing: 0.03em;
+}
+.evo-welcome__feat-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.evo-welcome__feat-icon--teal  { background: rgba(77,255,184,.1);  }
+.evo-welcome__feat-icon--gold  { background: rgba(212,175,55,.1);  }
+.evo-welcome__feat-icon--purple { background: rgba(123,92,255,.1); }
+
+/* ── RIGHT PANEL — form ── */
+.evo-welcome__right {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 48px;
+  background: linear-gradient(160deg,
+    rgba(14,12,28,1) 0%,
+    rgba(8,8,18,1) 100%);
+  border-left: 1px solid rgba(77,255,184,.06);
+}
+
+.evo-welcome__right::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(77,255,184,.05) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+/* Capital Card — rediseñada */
 .evo-capital-card {
-  background: rgba(15,15,26,.85);
-  border: 1px solid rgba(77,255,184,.2);
-  border-radius: var(--radius-xl);
-  padding: var(--space-xl) var(--space-xl);
-  backdrop-filter: blur(20px);
-  box-shadow: 0 0 60px rgba(77,255,184,.06), 0 20px 60px rgba(0,0,0,.5);
-  animation: cardGlowPulse 4s ease-in-out infinite;
-}
-
-@keyframes cardGlowPulse {
-  0%,100% { box-shadow: 0 0 40px rgba(77,255,184,.06), 0 20px 60px rgba(0,0,0,.5); }
-  50%      { box-shadow: 0 0 80px rgba(77,255,184,.12), 0 20px 60px rgba(0,0,0,.5); }
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 420px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(77,255,184,.14);
+  border-radius: 20px;
+  padding: 36px 36px 32px;
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.04) inset,
+    0 30px 80px rgba(0,0,0,.5),
+    0 0 60px rgba(77,255,184,.04);
 }
 
 .evo-capital-card__label {
   font-family: 'Fira Code', monospace;
   font-size: 0.5rem;
-  letter-spacing: 0.28em;
-  color: var(--teal);
-  margin-bottom: var(--space-md);
+  letter-spacing: 0.3em;
+  color: rgba(77,255,184,.6);
+  margin-bottom: 16px;
+  text-transform: uppercase;
 }
 
 .evo-capital-card__input-wrap {
@@ -1963,21 +2043,30 @@
 }
 .evo-capital-card__btn:hover .evo-capital-card__btn-icon { transform: translateX(4px); }
 
-/* Welcome mini stats */
-.evo-welcome__stats {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-md);
-  margin-top: var(--space-xl);
-  font-family: 'Fira Code', monospace;
-  font-size: 0.5625rem;
-  color: var(--text-secondary);
-  letter-spacing: 0.1em;
-  flex-wrap: wrap;
+/* Restore padding for non-welcome evolucion views */
+#screen-evolucion .evo-picker-wrap,
+#screen-evolucion .evo-dash,
+#screen-evolucion .evo-bankrupt,
+#screen-evolucion .evo-obj-wrap {
+  margin: var(--space-lg);
 }
-.evo-welcome__stat span { color: var(--gold); font-weight: 700; font-size: 0.75rem; }
-.evo-welcome__stat-sep { opacity: 0.3; }
+
+/* Responsive welcome */
+@media (max-width: 860px) {
+  .evo-welcome {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+  .evo-welcome__left {
+    padding: 48px 28px 32px;
+  }
+  .evo-welcome__right {
+    padding: 32px 28px 48px;
+    border-left: none;
+    border-top: 1px solid rgba(77,255,184,.06);
+  }
+  .evo-capital-card { max-width: 100%; }
+}
 
 /* ════════════════════════════════════════════════════════════
    STEP 2 — PLAN PICKER
@@ -2924,4 +3013,227 @@
   .evo-obj-milestone { flex-direction: column; align-items: flex-start; }
   .evo-obj-milestone__right { width: 100%; align-items: flex-start; }
   .evo-obj-milestone__bar-wrap { width: 100%; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   BANKRUPT SCREEN — Capital llegó a $0
+   ══════════════════════════════════════════════════════════ */
+.evo-bankrupt {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+.evo-bankrupt--visible { opacity: 1; }
+
+.evo-bankrupt__bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 40%, rgba(180,0,0,.18) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 20% 80%, rgba(100,0,0,.12) 0%, transparent 60%),
+    #080305;
+  z-index: 0;
+}
+
+.evo-bankrupt__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+  max-width: 540px;
+  padding: 40px 24px;
+  animation: evoFadeUp 0.9s cubic-bezier(0.22,1,0.36,1) 0.2s both;
+}
+
+.evo-bankrupt__icon {
+  font-size: 5rem;
+  filter: grayscale(0.3);
+  animation: bankrupt-shake 0.6s cubic-bezier(0.36,0.07,0.19,0.97) 0.5s both;
+}
+
+@keyframes bankrupt-shake {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-8deg) scale(1.1); }
+  40% { transform: rotate(8deg) scale(1.15); }
+  60% { transform: rotate(-5deg) scale(1.1); }
+  80% { transform: rotate(5deg); }
+}
+
+.evo-bankrupt__tag {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.5625rem;
+  letter-spacing: 0.3em;
+  color: rgba(220,60,60,.7);
+  border: 1px solid rgba(220,60,60,.25);
+  padding: 5px 16px;
+  border-radius: 20px;
+  background: rgba(220,60,60,.06);
+}
+
+.evo-bankrupt__title {
+  font-family: var(--font-heading);
+  font-size: clamp(2.2rem, 6vw, 3.5rem);
+  font-weight: 900;
+  line-height: 1.1;
+  color: rgba(220,215,200,.85);
+  letter-spacing: -0.01em;
+}
+.evo-bankrupt__title span {
+  color: #cc2233;
+  text-shadow: 0 0 30px rgba(200,30,50,.5);
+}
+
+.evo-bankrupt__sub {
+  font-size: 0.9375rem;
+  color: rgba(220,215,200,.45);
+  line-height: 1.7;
+}
+
+.evo-bankrupt__phrase {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-style: italic;
+  color: rgba(220,215,200,.6);
+  line-height: 1.65;
+  padding: 20px 24px;
+  border-left: 2px solid rgba(220,60,60,.35);
+  background: rgba(220,60,60,.04);
+  border-radius: 0 8px 8px 0;
+  text-align: left;
+}
+
+.evo-bankrupt__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 16px 32px;
+  border-radius: 12px;
+  border: 1px solid rgba(220,60,60,.4);
+  background: linear-gradient(135deg, rgba(180,20,35,.25), rgba(100,10,20,.35));
+  color: rgba(255,200,200,.9);
+  font-family: var(--font-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 260ms ease;
+  box-shadow: 0 0 30px rgba(200,30,50,.15), inset 0 1px 0 rgba(255,255,255,.05);
+}
+.evo-bankrupt__btn:hover {
+  background: linear-gradient(135deg, rgba(220,30,50,.35), rgba(140,10,25,.45));
+  border-color: rgba(220,60,60,.7);
+  box-shadow: 0 0 50px rgba(200,30,50,.3);
+  transform: translateY(-2px);
+  color: #fff;
+}
+.evo-bankrupt__btn-icon { font-size: 1.1rem; }
+.evo-bankrupt__btn-arrow {
+  margin-left: 4px;
+  opacity: 0.6;
+  transition: transform 200ms, opacity 200ms;
+}
+.evo-bankrupt__btn:hover .evo-bankrupt__btn-arrow {
+  transform: translateX(4px);
+  opacity: 1;
+}
+/* ── ROADMAP CTA BUTTON ── */
+.evo-roadmap-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 24px;
+  margin-top: var(--space-lg);
+  background: linear-gradient(135deg, rgba(123,92,255,.08), rgba(212,175,55,.05));
+  border: 1px solid rgba(123,92,255,.2);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 220ms ease;
+}
+.evo-roadmap-cta:hover {
+  background: linear-gradient(135deg, rgba(123,92,255,.15), rgba(212,175,55,.08));
+  border-color: rgba(123,92,255,.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(123,92,255,.12);
+}
+.evo-roadmap-cta__left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.evo-roadmap-cta__icon {
+  font-size: 1.5rem;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(123,92,255,.1);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.evo-roadmap-cta__title {
+  font-family: var(--font-heading);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: rgba(220,215,200,.9);
+  letter-spacing: 0.02em;
+}
+.evo-roadmap-cta__sub {
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+  margin-top: 3px;
+}
+.evo-roadmap-cta__arrow {
+  font-size: 1.25rem;
+  color: rgba(123,92,255,.7);
+  transition: transform 220ms;
+}
+.evo-roadmap-cta:hover .evo-roadmap-cta__arrow { transform: translateX(5px); }
+
+/* ── ROADMAP INDEPENDENT VIEW ── */
+.evo-roadmap-view {
+  position: relative;
+}
+.evo-roadmap-view__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: rgba(220,215,200,.5);
+  cursor: pointer;
+  padding: 8px 0 20px;
+  transition: color 180ms;
+}
+.evo-roadmap-view__back:hover { color: var(--gold); }
+
+.evo-dash__burn-badge {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.5625rem;
+  letter-spacing: 0.1em;
+  color: rgba(220,100,80,.8);
+  background: rgba(200,50,30,.1);
+  border: 1px solid rgba(200,50,30,.2);
+  border-radius: 20px;
+  padding: 4px 10px;
+  cursor: default;
+}
+
+.evo-bankrupt__burn-count {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.6875rem;
+  color: rgba(220,100,100,.6);
+  letter-spacing: 0.08em;
+}
+.evo-bankrupt__burn-count strong {
+  color: rgba(220,60,60,.9);
 }

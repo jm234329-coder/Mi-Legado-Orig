@@ -11,7 +11,8 @@
       "Bash(ls \"C:/Users/jm234/.claude/skills/ui-ux-pro-max-skill\")",
       "Bash(ls \"C:/Users/jm234/.claude/skills/\")",
       "Bash(ls \"C:/Users/jm234/.claude/\")",
-      "Bash(dir \"C:\\\\Users\\\\jm234\\\\OneDrive\\\\Desktop\\\\911\\\\1%\\\\Mi-Legado\\\\mi-legado\" /b)"
+      "Bash(dir \"C:\\\\Users\\\\jm234\\\\OneDrive\\\\Desktop\\\\911\\\\1%\\\\Mi-Legado\\\\mi-legado\" /b)",
+      "Bash(tail -5 \"C:\\\\Users\\\\jm234\\\\OneDrive\\\\Desktop\\\\911\\\\1%\\\\Mi-Legado\\\\mi-legado\\\\css\\\\screens.css\")"
     ]
   }
 }

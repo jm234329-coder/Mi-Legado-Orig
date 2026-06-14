@@ -11,11 +11,23 @@ const MLScreenEvolucion = {
   _history: [],
   _plans:   [],
   _shaderRAF: null,
+  _bankrupt: false,
+
+  _getBurnCount() {
+    return parseInt(localStorage.getItem('ml_burn_count') || '0', 10);
+  },
+  _incBurnCount() {
+    const n = this._getBurnCount() + 1;
+    localStorage.setItem('ml_burn_count', n);
+    return n;
+  },
 
   /* ── init ────────────────────────────────────────────────── */
   render() {
     const el = document.getElementById('screen-evolucion');
-    if (this._capital !== null && this._planIdx !== null) {
+    if (this._bankrupt) {
+      this._renderBankrupt(el);
+    } else if (this._capital !== null && this._planIdx !== null) {
       this._renderDashboard(el);
     } else if (this._capital !== null) {
       this._renderPlanPicker(el);
@@ -30,20 +42,36 @@ const MLScreenEvolucion = {
   _renderWelcome(el) {
     el.innerHTML = `
       <div class="evo-welcome" id="evoWelcome">
-        <canvas id="evoParticles" class="evo-particles"></canvas>
-        <div class="evo-orb evo-orb--1"></div>
-        <div class="evo-orb evo-orb--2"></div>
-        <div class="evo-orb evo-orb--3"></div>
-        <div class="evo-welcome__inner">
-          <div class="evo-welcome__badge">💎 CENTRO DE EVOLUCIÓN · OPCIONES BINARIAS · BULLEX</div>
+
+        <!-- LEFT — hero copy -->
+        <div class="evo-welcome__left">
+          <div class="evo-welcome__eyebrow">CENTRO DE EVOLUCIÓN · BULLEX</div>
           <h1 class="evo-welcome__title">
-            Bienvenido a tu <span class="evo-welcome__title--accent">punto de partida</span><br>
-            hacia el <span class="evo-welcome__title--gold">éxito financiero</span>
+            Tu camino hacia<br>
+            la <em>libertad</em><br>
+            <strong>financiera</strong>
           </h1>
           <p class="evo-welcome__sub">
-            Define tu capital inicial y el sistema construirá tu plan de trading personalizado.<br>
-            Tu disciplina hoy forja tu libertad mañana.
+            Define tu capital, elige tu plan y el sistema construye tu ruta de crecimiento diaria. Disciplina y consistencia son tu única ventaja.
           </p>
+          <div class="evo-welcome__features">
+            <div class="evo-welcome__feat">
+              <div class="evo-welcome__feat-icon evo-welcome__feat-icon--teal">📈</div>
+              5 niveles de riesgo adaptados a tu capital
+            </div>
+            <div class="evo-welcome__feat">
+              <div class="evo-welcome__feat-icon evo-welcome__feat-icon--gold">⚡</div>
+              Meta diaria calculada automáticamente
+            </div>
+            <div class="evo-welcome__feat">
+              <div class="evo-welcome__feat-icon evo-welcome__feat-icon--purple">🛡</div>
+              Stop-loss y gestión de riesgo integrados
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT — form -->
+        <div class="evo-welcome__right">
           <div class="evo-capital-card" id="evoCapitalCard">
             <div class="evo-capital-card__label">CAPITAL INICIAL (USD)</div>
             <div class="evo-capital-card__input-wrap" id="evoInputWrap">
@@ -58,14 +86,8 @@ const MLScreenEvolucion = {
               <span class="evo-capital-card__btn-icon">→</span>
             </button>
           </div>
-          <div class="evo-welcome__stats">
-            <div class="evo-welcome__stat"><span>5</span> Niveles de riesgo</div>
-            <div class="evo-welcome__stat-sep">·</div>
-            <div class="evo-welcome__stat"><span>5</span> Temporalidades</div>
-            <div class="evo-welcome__stat-sep">·</div>
-            <div class="evo-welcome__stat"><span>$1</span> mín. por op. (Bullex)</div>
-          </div>
         </div>
+
       </div>`;
     this._startParticles('evoParticles');
     this._bindCapitalInput();
@@ -275,89 +297,190 @@ const MLScreenEvolucion = {
     const plan     = this._effectivePlan(stats.currentCapital);
     const showBullex = plan.adjusted; // only show if currentCapital still below threshold
 
-    el.innerHTML = `
-      <div class="evo-dash" id="evoDash">
-        <div class="evo-orb evo-orb--1" style="opacity:.3"></div>
-        <div class="evo-orb evo-orb--2" style="opacity:.25"></div>
+    const capGrowth = stats.currentCapital >= cap
+      ? '+' + ((( stats.currentCapital - cap) / cap) * 100).toFixed(1) + '%'
+      : (((stats.currentCapital - cap) / cap) * 100).toFixed(1) + '%';
+    const capGrowthPos = stats.currentCapital >= cap;
+    const disciplineColor = stats.disciplineScore >= 70 ? '#4dffd2' : stats.disciplineScore >= 40 ? '#d4af37' : '#ff3366';
 
-        <!-- Header -->
-        <div class="evo-dash__header">
-          <div>
-            <div class="evo-dash__badge">💎 PLAN ACTIVO · ${basePlan.emoji} ${basePlan.label}${showBullex ? ' · ⚡ AJUSTADO A $1/OP' : ''}</div>
-            <h2 class="evo-dash__title">Centro de <span style="color:var(--accent)">Evolución</span></h2>
+    el.innerHTML = `
+      <div class="evd" id="evoDash">
+
+        <!-- ── TOP BAR ───────────────────────────────────────── -->
+        <div class="evd-topbar">
+          <div class="evd-topbar__left">
+            <div class="evd-topbar__plan-tag">
+              <span class="evd-topbar__plan-dot"></span>
+              PLAN ACTIVO
+            </div>
+            <div class="evd-topbar__plan-name">${basePlan.emoji} ${basePlan.label}${showBullex ? ' <span class="evd-topbar__adjusted">⚡ AJUSTADO $1/OP</span>' : ''}</div>
           </div>
-          <div class="evo-dash__header-actions">
-            <button class="evo-dash__change-btn" onclick="MLScreenEvolucion._changePlan()">⚙ Cambiar Plan</button>
-            <button class="evo-dash__reset-btn" onclick="MLScreenEvolucion._resetAll()">↺ Reiniciar</button>
+          <div class="evd-topbar__right">
+            ${this._getBurnCount() > 0 ? `<div class="evd-burn-chip">🔥 ${this._getBurnCount()} ${this._getBurnCount()===1?'quema':'quemas'}</div>` : ''}
+            <button class="evd-btn evd-btn--ghost" onclick="MLScreenEvolucion._changePlan()">⚙ Plan</button>
+            <button class="evd-btn evd-btn--ghost evd-btn--danger" onclick="MLScreenEvolucion._resetAll()">↺ Reset</button>
           </div>
         </div>
 
         ${showBullex ? `
-        <div class="evo-adjusted-banner">
-          ⚡ <strong>Bullex Mínimo Aplicado:</strong> Tu capital actual de <strong>$${stats.currentCapital.toFixed(2)}</strong> al ${basePlan.pct}% equivale a $${plan.perOpRaw.toFixed(2)}/op — por debajo del mínimo de $1.00 de Bullex. El sistema ajustó a <strong>$1.00/op</strong> (riesgo real: ${plan.effectivePct}%). Incrementa tu capital a <strong>$${basePlan.minCapital}</strong> para operar este plan de forma óptima.
+        <div class="evd-alert">
+          <span class="evd-alert__icon">⚡</span>
+          <div><strong>Bullex Mínimo:</strong> $${stats.currentCapital.toFixed(2)} al ${basePlan.pct}% = $${plan.perOpRaw.toFixed(2)}/op (bajo mínimo $1). Ajustado a <strong>$1.00/op</strong> · riesgo real ${plan.effectivePct}%. Necesitas <strong>$${basePlan.minCapital}</strong> para operar en óptimo.</div>
         </div>` : ''}
 
-        <!-- KPIs -->
-        <div class="evo-kpis" id="evoKpis">
-          ${this._kpi('$'+cap.toLocaleString('en-US',{minimumFractionDigits:2}), 'Capital Base', 'teal')}
-          ${this._kpi(basePlan.pct+'%'+(showBullex?` (${plan.effectivePct}% real)`:''), 'Riesgo / Op.', 'gold')}
-          ${this._kpi('$'+plan.perOp.toFixed(2), 'Monto / Op.', showBullex?'orange':'accent')}
-          ${this._kpi('$'+stats.totalEarned.toLocaleString('en-US',{minimumFractionDigits:2}), 'Ganado Total', stats.totalEarned>=0?'teal':'red')}
-          ${this._kpi('$'+stats.currentCapital.toLocaleString('en-US',{minimumFractionDigits:2}), 'Capital Actual', stats.currentCapital>=cap?'gold':'red')}
-          ${this._kpi(stats.disciplineScore+'%', 'Disciplina', stats.disciplineScore>=70?'teal':stats.disciplineScore>=40?'gold':'red')}
-        </div>
-
-        <!-- Main grid -->
-        <div class="evo-main-grid">
-          <div class="evo-main-grid__left">
-            <div class="section-head"><div class="section-title">Proyecciones del Plan <span style="font-size:.6rem;color:var(--text-secondary);font-weight:400">(basadas en capital actual)</span></div></div>
-            ${this._goalCard2('META DIARIA',    plan.daily,   stats.todayEarned,  'teal')}
-            ${this._goalCard2('META SEMANAL',   plan.weekly,  stats.weekEarned,   'gold')}
-            ${this._goalCard2('META QUINCENAL', plan.biweek,  stats.biweekEarned, 'accent')}
-            ${this._goalCard2('META MENSUAL',   plan.monthly, stats.monthEarned,  'purple')}
-            ${this._goalCard2('META ANUAL',     plan.annual,  stats.yearEarned,   'blue')}
-            <div class="card mt-md">
-              <div style="font-size:0.625rem;color:var(--text-secondary);letter-spacing:.15em;margin-bottom:var(--space-md)">EVOLUCIÓN DE CAPITAL</div>
-              <canvas id="evoChart" height="160"></canvas>
+        <!-- ── HERO METRICS ───────────────────────────────────── -->
+        <div class="evd-hero">
+          <div class="evd-hero__capital">
+            <div class="evd-hero__capital-label">CAPITAL ACTUAL</div>
+            <div class="evd-hero__capital-val ${capGrowthPos?'evd-hero__capital-val--up':'evd-hero__capital-val--down'}">
+              $${stats.currentCapital.toLocaleString('en-US',{minimumFractionDigits:2})}
+            </div>
+            <div class="evd-hero__capital-delta ${capGrowthPos?'evd-hero__capital-delta--up':'evd-hero__capital-delta--down'}">
+              ${capGrowthPos?'▲':'▼'} ${capGrowth} vs capital base
             </div>
           </div>
-          <div class="evo-main-grid__right">
-            <div class="evo-logger card">
-              <div class="evo-logger__title">📝 Registrar Resultado del Día</div>
-              <div class="evo-logger__desc">Ingresa tu ganancia o pérdida de hoy (negativo para pérdida)</div>
-              <div class="evo-logger__row">
-                <div class="evo-logger__input-wrap" id="evoLogWrap">
-                  <span class="evo-logger__dollar">$</span>
-                  <input type="number" id="evoLogInput" class="evo-logger__input" placeholder="0.00" step="0.01"/>
+          <div class="evd-hero__divider"></div>
+          <div class="evd-hero__stats">
+            <div class="evd-hero__stat">
+              <div class="evd-hero__stat-val" style="color:#4dffd2">$${cap.toLocaleString('en-US',{minimumFractionDigits:2})}</div>
+              <div class="evd-hero__stat-label">Capital Base</div>
+            </div>
+            <div class="evd-hero__stat">
+              <div class="evd-hero__stat-val" style="color:#d4af37">$${stats.totalEarned>=0?'+':''}${stats.totalEarned.toLocaleString('en-US',{minimumFractionDigits:2})}</div>
+              <div class="evd-hero__stat-label">Ganado Total</div>
+            </div>
+            <div class="evd-hero__stat">
+              <div class="evd-hero__stat-val" style="color:#7b5cff">$${plan.perOp.toFixed(2)}</div>
+              <div class="evd-hero__stat-label">Monto / Op</div>
+            </div>
+            <div class="evd-hero__stat">
+              <div class="evd-hero__stat-val" style="color:${disciplineColor}">${stats.disciplineScore}%</div>
+              <div class="evd-hero__stat-label">Disciplina</div>
+            </div>
+          </div>
+          <div class="evd-hero__divider"></div>
+          <div class="evd-hero__discipline">
+            <div class="evd-hero__disc-label">ÍNDICE DE DISCIPLINA</div>
+            <div class="evd-hero__disc-track">
+              <div class="evd-hero__disc-fill" style="width:${stats.disciplineScore}%;background:${disciplineColor};box-shadow:0 0 12px ${disciplineColor}88"></div>
+            </div>
+            <div class="evd-hero__disc-sub">${stats.wins}W · ${stats.losses}L · ${stats.disciplineScore>=70?'Excelente consistencia':stats.disciplineScore>=40?'Mejorable':'Revisar estrategia'}</div>
+          </div>
+        </div>
+
+        <!-- ── MAIN CONTENT ───────────────────────────────────── -->
+        <div class="evd-body">
+
+          <!-- LEFT COL -->
+          <div class="evd-body__left">
+
+            <!-- Metas -->
+            <div class="evd-section-title">
+              <span class="evd-section-title__line"></span>
+              PROYECCIONES DEL PLAN
+              <span class="evd-section-title__line"></span>
+            </div>
+            <div class="evd-targets">
+              ${this._targetRow('HOY',      plan.daily,   stats.todayEarned,  '#4dffd2')}
+              ${this._targetRow('SEMANA',   plan.weekly,  stats.weekEarned,   '#d4af37')}
+              ${this._targetRow('QUINCENA', plan.biweek,  stats.biweekEarned, '#7b5cff')}
+              ${this._targetRow('MES',      plan.monthly, stats.monthEarned,  '#ff9f43')}
+              ${this._targetRow('AÑO',      plan.annual,  stats.yearEarned,   '#00d4ff')}
+            </div>
+
+            <!-- Chart -->
+            <div class="evd-chart-card">
+              <div class="evd-chart-card__header">
+                <span class="evd-chart-card__title">EVOLUCIÓN DE CAPITAL</span>
+                <span class="evd-chart-card__entries">${this._history.length} registros</span>
+              </div>
+              <canvas id="evoChart" height="150"></canvas>
+            </div>
+
+            <!-- Roadmap CTA -->
+            <div class="evd-roadmap-cta" onclick="MLScreenEvolucion._renderRoadmap(document.getElementById('screen-evolucion'))">
+              <div class="evd-roadmap-cta__left">
+                <div class="evd-roadmap-cta__icon">🎯</div>
+                <div>
+                  <div class="evd-roadmap-cta__title">Hoja de Ruta · Objetivos y Avances</div>
+                  <div class="evd-roadmap-cta__sub">Proyecciones completas, hitos y disciplina</div>
                 </div>
-                <input type="date" id="evoLogDate" class="evo-logger__date" value="${new Date().toISOString().slice(0,10)}"/>
               </div>
-              <div class="evo-logger__toggle-row">
-                <button class="evo-logger__toggle evo-logger__toggle--win active" id="logToggleWin" onclick="MLScreenEvolucion._setLogType('win')">✅ GANANCIA</button>
-                <button class="evo-logger__toggle evo-logger__toggle--loss" id="logToggleLoss" onclick="MLScreenEvolucion._setLogType('loss')">❌ PÉRDIDA</button>
-              </div>
-              <button class="evo-logger__btn" onclick="MLScreenEvolucion._logResult()">REGISTRAR RESULTADO</button>
+              <span class="evd-roadmap-cta__arrow">→</span>
             </div>
-            <div id="evoRecoArea" class="evo-reco-area"></div>
-            <div class="card mt-md" id="evoHistCard">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-md)">
-                <div style="font-size:0.625rem;color:var(--text-secondary);letter-spacing:.15em">HISTORIAL DE RESULTADOS</div>
-                <span style="font-size:0.5625rem;color:var(--text-secondary)">${this._history.length} entradas</span>
-              </div>
-              ${this._renderHistory()}
-            </div>
-          </div>
-        </div>
 
-        <!-- OBJETIVOS SECTION -->
-        <div id="evoObjectivesSection" class="evo-objectives-section mt-lg">
-          ${this._buildObjectivesHTML(plan, stats)}
+          </div>
+
+          <!-- RIGHT COL -->
+          <div class="evd-body__right">
+
+            <!-- Logger -->
+            <div class="evd-logger">
+              <div class="evd-logger__header">
+                <div class="evd-logger__title">Registrar Operación</div>
+                <div class="evd-logger__date-wrap">
+                  <input type="date" id="evoLogDate" class="evd-logger__date" value="${new Date().toISOString().slice(0,10)}"/>
+                </div>
+              </div>
+
+              <div class="evd-logger__type-row">
+                <button class="evd-type-btn evd-type-btn--win active" id="logToggleWin" onclick="MLScreenEvolucion._setLogType('win')">
+                  <span class="evd-type-btn__icon">↑</span> GANANCIA
+                </button>
+                <button class="evd-type-btn evd-type-btn--loss" id="logToggleLoss" onclick="MLScreenEvolucion._setLogType('loss')">
+                  <span class="evd-type-btn__icon">↓</span> PÉRDIDA
+                </button>
+              </div>
+
+              <div class="evd-logger__input-wrap" id="evoLogWrap">
+                <span class="evd-logger__dollar">$</span>
+                <input type="number" id="evoLogInput" class="evd-logger__input" placeholder="0.00" step="0.01"/>
+              </div>
+
+              <button class="evd-logger__submit" onclick="MLScreenEvolucion._logResult()">
+                REGISTRAR RESULTADO
+              </button>
+
+              <div class="evd-logger__hint">Meta hoy: <strong style="color:#4dffd2">$${plan.daily.toFixed(2)}</strong> · Stop: <strong style="color:#ff3366">-$${plan.maxLoss.toFixed(2)}</strong></div>
+            </div>
+
+            <!-- Reco -->
+            <div id="evoRecoArea" class="evd-reco"></div>
+
+            <!-- History -->
+            <div class="evd-hist">
+              <div class="evd-hist__header">
+                <span class="evd-hist__title">HISTORIAL</span>
+                <span class="evd-hist__count">${this._history.length} entradas</span>
+              </div>
+              <div class="evd-hist__list">
+                ${this._renderHistory()}
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>`;
+
 
     this._drawChart();
     this._bindLogInput();
     this._renderDefaultReco();
+  },
+
+  /* ══════════════════════════════════════════════════════════
+     ROADMAP VIEW (vista independiente)
+     ══════════════════════════════════════════════════════════ */
+  _renderRoadmap(el) {
+    const plan  = this._effectivePlan(this._computeStats().currentCapital);
+    const stats = this._computeStats();
+    el.innerHTML = `
+      <div class="evo-roadmap-view">
+        <div class="evo-roadmap-view__back" onclick="MLScreenEvolucion._renderDashboard(document.getElementById('screen-evolucion'))">
+          ← Volver al Dashboard
+        </div>
+        ${this._buildObjectivesHTML(plan, stats)}
+      </div>`;
     this._startShaderCanvas('evoShaderCanvas');
   },
 
@@ -480,6 +603,28 @@ const MLScreenEvolucion = {
       </div>`;
   },
 
+  _targetRow(label, target, done, color) {
+    const pct  = target > 0 ? Math.min(100, Math.max(0, (done / target) * 100)) : 0;
+    const over = done >= target;
+    const neg  = done < 0;
+    const barColor = neg ? '#ff3366' : color;
+    return `
+      <div class="evd-target">
+        <div class="evd-target__top">
+          <span class="evd-target__label">${label}</span>
+          <div class="evd-target__right">
+            <span class="evd-target__done" style="color:${neg?'#ff3366':over?color:'rgba(220,215,200,.5)'}">${done>=0?'+':''}$${done.toFixed(2)}</span>
+            <span class="evd-target__sep">/</span>
+            <span class="evd-target__goal" style="color:${color}">$${target.toFixed(2)}</span>
+            <span class="evd-target__pct" style="color:${barColor}">${Math.round(pct)}%${over?' ✓':''}</span>
+          </div>
+        </div>
+        <div class="evd-target__track">
+          <div class="evd-target__fill" style="width:${pct}%;background:${barColor};box-shadow:0 0 10px ${barColor}55"></div>
+        </div>
+      </div>`;
+  },
+
   _goalCard2(label, target, done, fill) {
     const pct  = target>0 ? Math.min(100,Math.max(0,Math.round((done/target)*100))) : 0;
     const over = done>target, neg = done<0;
@@ -556,9 +701,66 @@ const MLScreenEvolucion = {
     document.getElementById('evoLogWrap')?.classList.remove('evo-logger__input-wrap--ok','evo-logger__input-wrap--err');
 
     this._cancelShader();
+
+    // Check if capital is wiped out
+    const stats = this._computeStats();
+    if (stats.currentCapital <= 0) {
+      this._bankrupt = true;
+      this._incBurnCount();
+      this._renderBankrupt(document.getElementById('screen-evolucion'));
+      return;
+    }
+
     this._renderDashboard(document.getElementById('screen-evolucion'));
     this._showReco(v);
     MLNotifications?.show(v>=0?'✅':'⚠','Resultado registrado', v>=0?`+$${v.toFixed(2)} añadido`:`Pérdida $${Math.abs(v).toFixed(2)} registrada`);
+  },
+
+  _renderBankrupt(el) {
+    const burnCount = this._getBurnCount();
+    const phrases = [
+      'El fracaso no es el fin — es la materia prima de los grandes.',
+      'Cada leyenda tiene un capítulo donde todo se derrumbó.',
+      'Los que no conocen la derrota no saben lo que significa ganar de verdad.',
+      'Caíste. Eso significa que estuviste en el campo de batalla.',
+      'La adversidad revela lo que la comodidad nunca podría enseñarte.',
+    ];
+    const phrase = phrases[Math.floor(Math.random() * phrases.length)];
+
+    el.innerHTML = `
+      <div class="evo-bankrupt" id="evoBankrupt">
+        <div class="evo-bankrupt__bg"></div>
+        <div class="evo-bankrupt__content">
+          <div class="evo-bankrupt__icon">💀</div>
+          <div class="evo-bankrupt__tag">CUENTA LIQUIDADA</div>
+          <div class="evo-bankrupt__burn-count">
+            🔥 Cuentas quemadas: <strong>${burnCount}</strong>
+          </div>
+          <h1 class="evo-bankrupt__title">Tu capital<br>llegó a <span>$0.00</span></h1>
+          <p class="evo-bankrupt__sub">
+            Tu plan de trading ha sido cancelado.<br>
+            Todo el progreso ha sido eliminado.
+          </p>
+          <div class="evo-bankrupt__phrase">"${phrase}"</div>
+          <button class="evo-bankrupt__btn" onclick="MLScreenEvolucion._resetAndGoHome()">
+            <span class="evo-bankrupt__btn-icon">⚔</span>
+            <span>Volveré más preparado que nunca</span>
+            <span class="evo-bankrupt__btn-arrow">→</span>
+          </button>
+        </div>
+      </div>`;
+
+    // Animate in
+    requestAnimationFrame(() => {
+      document.getElementById('evoBankrupt')?.classList.add('evo-bankrupt--visible');
+    });
+  },
+
+  _resetAndGoHome() {
+    this._cancelShader();
+    this._capital = null; this._planIdx = null; this._history = []; this._plans = [];
+    this._bankrupt = false;
+    MLNavigation?.go('inicio');
   },
 
   /* ── reco ────────────────────────────────────────────────── */
@@ -622,47 +824,236 @@ const MLScreenEvolucion = {
 
   /* ── chart ────────────────────────────────────────────────── */
   _drawChart() {
-    const canvas=document.getElementById('evoChart'); if(!canvas) return;
-    const ctx=canvas.getContext('2d');
-    canvas.width=canvas.offsetWidth||600; canvas.height=160;
-    const cap=this._capital, plan=this._plans[this._planIdx];
-    const sorted=[...this._history].sort((a,b)=>a.date.localeCompare(b.date));
-    const points=[{label:'Inicio',val:cap}]; let running=cap;
-    sorted.forEach(h=>{ running+=h.amount; points.push({label:h.date.slice(5),val:+running.toFixed(2)}); });
-    const targetPts=points.map((p,i)=>({label:p.label,val:+(cap+plan.daily*i).toFixed(2)}));
-    const W=canvas.width,H=canvas.height,pad={t:20,r:20,b:30,l:60};
-    const allVals=[...points.map(p=>p.val),...targetPts.map(p=>p.val)];
-    const minV=Math.min(...allVals)*0.98,maxV=Math.max(...allVals)*1.02;
-    const scaleX=i=>pad.l+(i/Math.max(points.length-1,1))*(W-pad.l-pad.r);
-    const scaleY=v=>pad.t+(1-(v-minV)/(maxV-minV))*(H-pad.t-pad.b);
-    ctx.clearRect(0,0,W,H);
-    ctx.strokeStyle='rgba(255,255,255,.05)'; ctx.lineWidth=1;
-    for(let i=0;i<=4;i++){
-      const y=pad.t+(i/4)*(H-pad.t-pad.b);
-      ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
-      ctx.fillStyle='rgba(255,255,255,.35)';ctx.font='10px Fira Code,monospace';ctx.textAlign='right';
-      ctx.fillText('$'+(maxV-(i/4)*(maxV-minV)).toFixed(0),pad.l-4,y+4);
+    const canvas = document.getElementById('evoChart'); if (!canvas) return;
+    const ctx    = canvas.getContext('2d');
+    const dpr    = window.devicePixelRatio || 1;
+    const W0     = canvas.parentElement?.offsetWidth || 600;
+    const H0     = 220;
+    canvas.width  = W0 * dpr;
+    canvas.height = H0 * dpr;
+    canvas.style.width  = W0 + 'px';
+    canvas.style.height = H0 + 'px';
+    ctx.scale(dpr, dpr);
+    const W = W0, H = H0;
+
+    const cap  = this._capital;
+    const plan = this._plans[this._planIdx];
+    const sorted = [...this._history].sort((a,b) => a.date.localeCompare(b.date));
+    const points = [{ label:'Inicio', val:cap, amount:0 }];
+    let running = cap;
+    sorted.forEach(h => { running += h.amount; points.push({ label:h.date.slice(5), val:+running.toFixed(2), amount:h.amount }); });
+    const targetPts = points.map((p,i) => ({ val:+(cap + plan.daily * i).toFixed(2) }));
+
+    const pad = { t:24, r:24, b:44, l:68 };
+    const cW = W - pad.l - pad.r;
+    const cH = H - pad.t - pad.b;
+
+    const allVals = [...points.map(p=>p.val), ...targetPts.map(p=>p.val)];
+    const rawMin = Math.min(...allVals), rawMax = Math.max(...allVals);
+    const margin = (rawMax - rawMin) * 0.15 || cap * 0.1;
+    const minV = rawMin - margin, maxV = rawMax + margin;
+
+    const sx = i  => pad.l + (i / Math.max(points.length - 1, 1)) * cW;
+    const sy = v  => pad.t + (1 - (v - minV) / (maxV - minV)) * cH;
+
+    // ── background
+    ctx.clearRect(0, 0, W, H);
+
+    // ── grid lines + labels
+    const GRID = 5;
+    for (let i = 0; i <= GRID; i++) {
+      const y   = pad.t + (i / GRID) * cH;
+      const val = maxV - (i / GRID) * (maxV - minV);
+      ctx.beginPath();
+      ctx.strokeStyle = i === GRID ? 'rgba(255,255,255,.1)' : 'rgba(255,255,255,.04)';
+      ctx.lineWidth = 1;
+      ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(220,215,200,.3)';
+      ctx.font = `${10 * dpr / dpr}px "Fira Code", monospace`;
+      ctx.textAlign = 'right';
+      ctx.fillText('$' + (val >= 1000 ? (val/1000).toFixed(1)+'k' : val.toFixed(val<10?2:0)), pad.l - 8, y + 4);
     }
-    if(sorted.length>0){
-      ctx.setLineDash([4,4]);ctx.strokeStyle='rgba(212,175,55,.35)';ctx.lineWidth=1.5;ctx.beginPath();
-      targetPts.forEach((p,i)=>i===0?ctx.moveTo(scaleX(i),scaleY(p.val)):ctx.lineTo(scaleX(i),scaleY(p.val)));
-      ctx.stroke();ctx.setLineDash([]);
-    }
-    const grad=ctx.createLinearGradient(0,pad.t,0,H-pad.b);
-    grad.addColorStop(0,'rgba(77,255,184,.25)');grad.addColorStop(1,'rgba(77,255,184,.01)');
-    ctx.beginPath();
-    points.forEach((p,i)=>i===0?ctx.moveTo(scaleX(i),scaleY(p.val)):ctx.lineTo(scaleX(i),scaleY(p.val)));
-    ctx.lineTo(scaleX(points.length-1),H-pad.b);ctx.lineTo(scaleX(0),H-pad.b);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
-    ctx.strokeStyle='#4dffd2';ctx.lineWidth=2;ctx.beginPath();
-    points.forEach((p,i)=>i===0?ctx.moveTo(scaleX(i),scaleY(p.val)):ctx.lineTo(scaleX(i),scaleY(p.val)));
-    ctx.stroke();
-    points.forEach((p,i)=>{
-      ctx.beginPath();ctx.arc(scaleX(i),scaleY(p.val),4,0,Math.PI*2);
-      ctx.fillStyle=p.val>=cap?'#4dffd2':'#ff3366';ctx.fill();ctx.strokeStyle='#0a0a12';ctx.lineWidth=1.5;ctx.stroke();
+
+    // ── vertical tick labels (dates)
+    const maxTicks = Math.min(points.length, 8);
+    const step = Math.ceil(points.length / maxTicks);
+    ctx.fillStyle = 'rgba(220,215,200,.25)';
+    ctx.font = '9px "Fira Code", monospace';
+    ctx.textAlign = 'center';
+    points.forEach((p, i) => {
+      if (i % step === 0 || i === points.length - 1) {
+        ctx.fillText(p.label, sx(i), H - pad.b + 16);
+      }
     });
-    ctx.font='9px Fira Code,monospace';ctx.textAlign='left';
-    ctx.fillStyle='#4dffd2';ctx.fillRect(W-130,H-22,10,2);ctx.fillText('Capital real',W-116,H-18);
-    ctx.fillStyle='rgba(212,175,55,.6)';ctx.fillRect(W-130,H-12,10,2);ctx.fillText('Meta plan',W-116,H-8);
+
+    // ── smooth path helper (cubic bezier)
+    function smoothLine(pts, getX, getY) {
+      if (pts.length < 2) return;
+      ctx.moveTo(getX(0), getY(0));
+      for (let i = 1; i < pts.length; i++) {
+        const x0 = getX(i-1), y0 = getY(i-1);
+        const x1 = getX(i),   y1 = getY(i);
+        const cpx = (x0 + x1) / 2;
+        ctx.bezierCurveTo(cpx, y0, cpx, y1, x1, y1);
+      }
+    }
+
+    // ── target line (dashed gold)
+    if (sorted.length > 0) {
+      ctx.save();
+      ctx.setLineDash([5, 5]);
+      ctx.strokeStyle = 'rgba(212,175,55,.35)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      smoothLine(targetPts, (_,i) => sx(i), p => sy(p.val));
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // ── area fill under capital line
+    const areaGrad = ctx.createLinearGradient(0, pad.t, 0, H - pad.b);
+    const isProfit = points[points.length-1].val >= cap;
+    if (isProfit) {
+      areaGrad.addColorStop(0,   'rgba(77,255,184,.22)');
+      areaGrad.addColorStop(0.6, 'rgba(77,255,184,.06)');
+      areaGrad.addColorStop(1,   'rgba(77,255,184,.00)');
+    } else {
+      areaGrad.addColorStop(0,   'rgba(255,51,102,.18)');
+      areaGrad.addColorStop(0.6, 'rgba(255,51,102,.05)');
+      areaGrad.addColorStop(1,   'rgba(255,51,102,.00)');
+    }
+    ctx.beginPath();
+    smoothLine(points, (_,i) => sx(i), p => sy(p.val));
+    ctx.lineTo(sx(points.length-1), H - pad.b);
+    ctx.lineTo(sx(0), H - pad.b);
+    ctx.closePath();
+    ctx.fillStyle = areaGrad;
+    ctx.fill();
+
+    // ── glow under line
+    ctx.save();
+    ctx.shadowColor  = isProfit ? '#4dffd2' : '#ff3366';
+    ctx.shadowBlur   = 14;
+    ctx.strokeStyle  = isProfit ? '#4dffd2' : '#ff3366';
+    ctx.lineWidth    = 2.5;
+    ctx.lineJoin     = 'round';
+    ctx.beginPath();
+    smoothLine(points, (_,i) => sx(i), p => sy(p.val));
+    ctx.stroke();
+    ctx.restore();
+
+    // ── capital baseline
+    const baseY = sy(cap);
+    ctx.save();
+    ctx.setLineDash([3, 6]);
+    ctx.strokeStyle = 'rgba(255,255,255,.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad.l, baseY); ctx.lineTo(W - pad.r, baseY);
+    ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = 'rgba(255,255,255,.2)';
+    ctx.font = '8px "Fira Code", monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText('BASE', pad.l - 4, baseY + 3);
+
+    // ── data points
+    points.forEach((p, i) => {
+      const x = sx(i), y = sy(p.val);
+      const gain  = p.amount > 0;
+      const loss  = p.amount < 0;
+      const color = loss ? '#ff3366' : p.val >= cap ? '#4dffd2' : '#ff9f43';
+      const r     = i === 0 || i === points.length - 1 ? 5 : 3.5;
+
+      // outer glow
+      ctx.save();
+      ctx.shadowColor = color; ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2);
+      ctx.fillStyle = color; ctx.fill();
+      ctx.restore();
+
+      // inner white
+      ctx.beginPath(); ctx.arc(x, y, r * 0.45, 0, Math.PI*2);
+      ctx.fillStyle = '#fff'; ctx.globalAlpha = 0.7; ctx.fill();
+      ctx.globalAlpha = 1;
+    });
+
+    // ── last point callout
+    const last = points[points.length - 1];
+    const lx = sx(points.length - 1), ly = sy(last.val);
+    const label = '$' + last.val.toLocaleString('en-US', { minimumFractionDigits:2 });
+    const lColor = last.val >= cap ? '#4dffd2' : '#ff3366';
+    ctx.font = 'bold 11px "Fira Code", monospace';
+    const tw = ctx.measureText(label).width;
+    const bx = Math.min(lx - tw/2 - 8, W - pad.r - tw - 16);
+    const by = ly - 28;
+    ctx.fillStyle = 'rgba(7,7,15,.85)';
+    ctx.strokeStyle = lColor + '66';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(bx, by, tw + 16, 20, 5);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = lColor;
+    ctx.textAlign = 'center';
+    ctx.fillText(label, bx + (tw + 16)/2, by + 14);
+
+    // ── legend
+    const legendX = pad.l;
+    const legendY = H - 10;
+    ctx.font = '9px "Fira Code", monospace';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#4dffd2';
+    ctx.beginPath(); ctx.roundRect(legendX, legendY - 4, 18, 3, 2); ctx.fill();
+    ctx.fillStyle = 'rgba(220,215,200,.4)';
+    ctx.fillText('Capital real', legendX + 24, legendY);
+    ctx.fillStyle = 'rgba(212,175,55,.55)';
+    ctx.setLineDash([4,4]);
+    ctx.strokeStyle = 'rgba(212,175,55,.55)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(legendX + 110, legendY - 2); ctx.lineTo(legendX + 128, legendY - 2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = 'rgba(220,215,200,.4)';
+    ctx.fillText('Meta plan', legendX + 134, legendY);
+
+    // ── hover tooltip
+    if (this._chartHoverOff) { canvas.removeEventListener('mousemove', this._chartHoverOff); canvas.removeEventListener('mouseleave', this._chartLeaveOff); }
+    const tooltip = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = (e.clientX - rect.left);
+      let closest = 0, minDist = Infinity;
+      points.forEach((_, i) => { const d = Math.abs(sx(i) - mx); if (d < minDist) { minDist = d; closest = i; }});
+      if (minDist > 40) return;
+      const p2 = points[closest];
+      const x2 = sx(closest), y2 = sy(p2.val);
+      // redraw
+      this._drawChart();
+      // crosshair
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,255,255,.1)'; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(x2, pad.t); ctx.lineTo(x2, H - pad.b); ctx.stroke();
+      ctx.restore();
+      // tooltip box
+      const tLabel = `${p2.label}  $${p2.val.toFixed(2)}${closest>0?' ('+( p2.amount>=0?'+':'')+p2.amount.toFixed(2)+')':''}`;
+      ctx.font = '10px "Fira Code", monospace';
+      const tw2 = ctx.measureText(tLabel).width;
+      const tx = Math.min(x2 - tw2/2 - 10, W - pad.r - tw2 - 20);
+      const ty = y2 - 44;
+      const tColor = p2.val >= cap ? '#4dffd2' : '#ff3366';
+      ctx.fillStyle = 'rgba(7,7,15,.92)';
+      ctx.strokeStyle = tColor + '88';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.roundRect(Math.max(tx, pad.l), Math.max(ty, 4), tw2 + 20, 26, 6); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = tColor; ctx.textAlign = 'left';
+      ctx.fillText(tLabel, Math.max(tx, pad.l) + 10, Math.max(ty, 4) + 17);
+      // highlight dot
+      ctx.save(); ctx.shadowColor = tColor; ctx.shadowBlur = 20;
+      ctx.beginPath(); ctx.arc(x2, y2, 6, 0, Math.PI*2);
+      ctx.fillStyle = tColor; ctx.fill(); ctx.restore();
+    };
+    this._chartHoverOff  = tooltip;
+    this._chartLeaveOff  = () => this._drawChart();
+    canvas.addEventListener('mousemove', tooltip);
+    canvas.addEventListener('mouseleave', this._chartLeaveOff);
   },
 
   /* ── navigation ───────────────────────────────────────────── */

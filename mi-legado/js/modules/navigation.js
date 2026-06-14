@@ -73,6 +73,11 @@ const MLNavigation = {
     if (screenId !== 'diario' && typeof DiaryWave !== 'undefined') {
       DiaryWave.stop();
     }
+
+    // Re-render evolucion every time so state changes (bankrupt reset) take effect
+    if (screenId === 'evolucion') {
+      MLScreenEvolucion.render();
+    }
     // Re-init wave when entering diario (re-render is already done at boot)
     if (screenId === 'diario') {
       setTimeout(() => {

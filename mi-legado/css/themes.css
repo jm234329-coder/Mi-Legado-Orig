@@ -12,7 +12,7 @@
 
 /* ── SOLO LEVELING ─────────────────────────────────────────── */
 [data-theme="solo-leveling"] .hero {
-  background-image: url('../img/solo-leveling.png');
+  background-image: url('../img/Solo.png');
   border-color: rgba(155,89,182,.2);
 }
 [data-theme="solo-leveling"] .sidebar::before {
